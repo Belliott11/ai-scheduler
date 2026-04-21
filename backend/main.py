@@ -24,10 +24,24 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Enable CORS
+# Enable CORS - configure for development and production
+# For production, replace 'belliott11' with your GitHub username
+allowed_origins = [
+    "http://localhost:3000",                            # React dev server
+    "http://localhost:5173",                            # Vite dev server
+    "http://127.0.0.1:5173",                            # Vite dev server (alternative)
+    "https://belliott11.github.io",                     # GitHub Pages root
+    "https://belliott11.github.io/ai-scheduler",        # GitHub Pages with path
+]
+
+# Allow all origins in development if DEBUG is set
+debug = os.getenv("DEBUG", "False").lower() == "true"
+if debug:
+    allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React dev servers
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
