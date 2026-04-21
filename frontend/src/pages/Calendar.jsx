@@ -1,131 +1,99 @@
-import React, { useState } from 'react';
-import { api } from '../api/client';
-import '../styles/Calendar.css';
+import React, { useState } from "react";
+import { api } from "../api/client";
+import "../styles/Calendar.css";
 
-export function CalendarPage({ sessionId, onCalendarData, syllabusData }) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+export function CalendarPage({ sessionId, onCalendarData }) {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [slots, setSlots] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [authInfo, setAuthInfo] = useState(null);
+  const [error, setError] = useState("");
 
-  const handleAuthorize = async () => {
+  const authorize = async () => {
     try {
-      const response = await api.authorizeCalendar();
-      setAuthInfo(response.data);
-    } catch (err) {
-      setError('Failed to get authorization info');
+      const res = await api.authorizeCalendar();
+      setAuthInfo(res.data);
+    } catch {
+      setError("Authorization failed");
     }
   };
 
-  const handleFetchSlots = async () => {
-    if (!startDate || !endDate) {
-      setError('Please select both start and end dates');
-      return;
+  const fetchSlots = async () => {
+    if (!startDate || !endDate) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await api.getCalendarSlots(startDate, endDate, sessionId);
+      setSlots(res.data.slots);
+      onCalendarData(res.data.slots);
+    } catch (e) {
+      setError(e.response?.data?.detail || "Failed to fetch slots");
     }
 
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const response = await api.getCalendarSlots(startDate, endDate, sessionId);
-      setSlots(response.data.slots);
-      onCalendarData(response.data.slots);
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to fetch calendar slots');
-    } finally {
-      setIsLoading(false);
-    }
+    setLoading(false);
   };
 
   return (
-    <div className="page calendar-page">
-      <div className="container">
-        <h1>📅 Connect Your Calendar</h1>
-        <p className="subtitle">
-          Link your Google Calendar to identify your free time slots.
-        </p>
+    <div className="page">
+      <h1>Calendar</h1>
+      <p className="subtitle">Find your free time automatically</p>
 
-        {!authInfo && (
-          <div className="auth-section">
-            <h2>Step 1: Authorize Google Calendar</h2>
-            <button 
-              onClick={handleAuthorize}
-              className="btn btn-google"
-            >
-              🔐 Setup Google Calendar
-            </button>
+      {/* STEP 1 */}
+      <div className="card">
+        <h3>1. Connect Google Calendar</h3>
+
+        {!authInfo ? (
+          <button onClick={authorize}>Connect Calendar</button>
+        ) : (
+          <div className="hint">
+            Follow setup instructions below
           </div>
         )}
 
         {authInfo && (
-          <div className="info-box">
-            <h3>Google Calendar Setup Instructions</h3>
-            <ol>
-              {authInfo.steps?.map((step, idx) => (
-                <li key={idx}>{step}</li>
-              ))}
-            </ol>
-            <p>
-              Once credentials are set up, fill in the date range below and click "Fetch Free Slots".
-            </p>
-          </div>
+          <ul>
+            {authInfo.steps?.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ul>
         )}
+      </div>
 
-        <div className="date-section">
-          <h2>Step 2: Select Date Range</h2>
-          <p>Find free time slots between these dates:</p>
-          
-          <div className="date-inputs">
-            <div className="input-group">
-              <label htmlFor="start-date">Start Date</label>
-              <input
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="input"
-              />
-            </div>
-            
-            <div className="input-group">
-              <label htmlFor="end-date">End Date</label>
-              <input
-                id="end-date"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="input"
-              />
-            </div>
-          </div>
+      {/* STEP 2 */}
+      <div className="card">
+        <h3>2. Select Date Range</h3>
 
-          <button 
-            onClick={handleFetchSlots}
-            disabled={isLoading || !startDate || !endDate}
-            className="btn btn-primary"
-          >
-            {isLoading ? 'Fetching...' : 'Fetch Free Slots'}
-          </button>
+        <div className="row">
+          <input type="date" onChange={(e) => setStartDate(e.target.value)} />
+          <input type="date" onChange={(e) => setEndDate(e.target.value)} />
         </div>
 
-        {slots.length > 0 && (
-          <div className="slots-section">
-            <h2>Available Time Slots ({slots.length} days)</h2>
-            <div className="slots-list">
-              {slots.map((slot, idx) => (
-                <div key={idx} className="slot-card">
-                  <strong>{slot.day_of_week}</strong>
-                  <p>{slot.start_time} - {slot.end_time}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && <div className="error-message">{error}</div>}
+        <button onClick={fetchSlots} disabled={loading}>
+          {loading ? "Finding free time..." : "Fetch Free Slots"}
+        </button>
       </div>
+
+      {/* RESULTS */}
+      {slots.length > 0 && (
+        <div className="card">
+          <h3>Available Time Slots</h3>
+
+          <div className="grid">
+            {slots.map((s, i) => (
+              <div key={i} className="slot">
+                <strong>{s.day_of_week}</strong>
+                <p>{s.start_time}</p>
+                <p>{s.end_time}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {error && <p className="error">{error}</p>}
     </div>
   );
 }

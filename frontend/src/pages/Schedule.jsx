@@ -1,85 +1,75 @@
-import React, { useState } from 'react';
-import { api } from '../api/client';
-import '../styles/Schedule.css';
+import React, { useState } from "react";
+import { api } from "../api/client";
+import "../styles/Schedule.css";
 
 export function SchedulePage({ sessionId }) {
   const [schedule, setSchedule] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleGenerateSchedule = async () => {
-    setIsLoading(true);
-    setError('');
-    
+  const generate = async () => {
+    setLoading(true);
+    setError("");
+
     try {
-      const response = await api.createSchedule(sessionId);
-      setSchedule(response.data.schedule);
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to generate schedule');
-    } finally {
-      setIsLoading(false);
+      const res = await api.createSchedule(sessionId);
+      setSchedule(res.data.schedule);
+    } catch (e) {
+      setError(e.response?.data?.detail || "Failed to generate schedule");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="page schedule-page">
-      <div className="container">
-        <h1>📖 Generated Schedule</h1>
-        <p className="subtitle">
-          Claude has intelligently scheduled your assignments.
-        </p>
+    <div className="page">
+      <h1>Schedule</h1>
+      <p className="subtitle">AI-optimized study plan</p>
 
-        {!schedule && (
-          <div className="generate-section">
-            <p>Click the button below to generate your personalized study schedule.</p>
-            <button 
-              onClick={handleGenerateSchedule}
-              disabled={isLoading}
-              className="btn btn-primary btn-large"
-            >
-              {isLoading ? '🤖 Generating Schedule...' : '✨ Generate Schedule'}
-            </button>
+      {!schedule && (
+        <div className="card">
+          <p>Your schedule is not generated yet.</p>
+          <button onClick={generate} disabled={loading}>
+            {loading ? "Generating..." : "Generate Schedule"}
+          </button>
+        </div>
+      )}
+
+      {schedule && (
+        <>
+          <div className="card">
+            <h3>Summary</h3>
+            <p>{schedule.schedule_summary}</p>
           </div>
-        )}
 
-        {schedule && (
-          <div className="schedule-display">
-            <div className="schedule-summary">
-              <h2>Schedule Summary</h2>
-              <p>{schedule.schedule_summary}</p>
-            </div>
+          {schedule.daily_tasks?.map((day, i) => (
+            <div key={i} className="card">
+              <h3>{day.day} • {day.date}</h3>
 
-            <div className="daily-tasks">
-              <h2>Daily Breakdown</h2>
-              {schedule.daily_tasks?.map((day, idx) => (
-                <div key={idx} className="day-card">
-                  <h3>{day.day} - {day.date}</h3>
-                  <div className="tasks">
-                    {day.tasks?.map((task, tidx) => (
-                      <div key={tidx} className="task">
-                        <strong className="task-time">
-                          {task.start_time} - {task.end_time}
-                        </strong>
-                        <p className="task-title">{task.assignment_title}</p>
-                        {task.notes && <p className="task-notes">{task.notes}</p>}
-                      </div>
-                    ))}
+              <div className="timeline">
+                {day.tasks?.map((t, j) => (
+                  <div key={j} className="task">
+                    <div className="time">
+                      {t.start_time} → {t.end_time}
+                    </div>
+                    <div className="title">{t.assignment_title}</div>
+                    <div className="note">{t.notes}</div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {schedule.tips && (
-              <div className="tips-section">
-                <h2>📝 Study Tips</h2>
-                <p>{schedule.tips}</p>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          ))}
 
-        {error && <div className="error-message">{error}</div>}
-      </div>
+          {schedule.tips && (
+            <div className="card">
+              <h3>Study Tips</h3>
+              <p>{schedule.tips}</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {error && <p className="error">{error}</p>}
     </div>
   );
 }

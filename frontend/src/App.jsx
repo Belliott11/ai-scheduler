@@ -1,89 +1,49 @@
-import "./styles.css";
+import { useState } from "react";
+import Upload from "./pages/Upload";
+import Calendar from "./pages/Calendar";
+import Schedule from "./pages/Schedule";
+import Export from "./pages/Export";
+import "./index.css";
 
-function Sidebar() {
-  return (
-    <div className="sidebar">
-      <h2>AI Scheduler</h2>
-      <button className="primary">Upload Syllabus</button>
-      <button>Connect Calendar</button>
-      <button>View Schedule</button>
-    </div>
-  );
-}
-
-function UploadBox() {
-  return (
-    <div className="card">
-      <h3>Upload Syllabus</h3>
-      <div className="upload-box">
-        <p>Drag & drop your syllabus PDF</p>
-        <input type="file" accept="application/pdf" />
-      </div>
-    </div>
-  );
-}
-
-function CalendarInput() {
-  return (
-    <div className="card">
-      <h3>Availability</h3>
-      <label>Start Date</label>
-      <input type="date" />
-
-      <label>End Date</label>
-      <input type="date" />
-
-      <button className="primary">Sync Calendar</button>
-    </div>
-  );
-}
-
-function AIPrompt() {
-  return (
-    <div className="card">
-      <h3>Customize AI</h3>
-      <textarea placeholder="Prioritize exams, avoid weekends..." />
-      <button className="primary">Generate Schedule</button>
-    </div>
-  );
-}
-
-function SchedulePreview() {
-  return (
-    <div className="card">
-      <h3>Schedule</h3>
-      <div className="item">
-        <strong>Essay Work</strong>
-        <p>April 22 · 10:00–12:00</p>
-      </div>
-    </div>
-  );
-}
-
-function MainPanel() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <UploadBox />
-      <CalendarInput />
-      <AIPrompt />
-    </div>
-  );
-}
-
-function RightPanel() {
-  return (
-    <div style={{ padding: "20px", borderLeft: "1px solid #1e293b" }}>
-      <SchedulePreview />
-    </div>
-  );
-}
+const steps = [
+  { id: 1, name: "Upload" },
+  { id: 2, name: "Review" },
+  { id: 3, name: "Calendar" },
+  { id: 4, name: "Schedule" },
+  { id: 5, name: "Export" },
+];
 
 export default function App() {
+  const [step, setStep] = useState(1);
+
+  const renderStep = () => {
+    switch (step) {
+      case 1: return <Upload next={() => setStep(2)} />;
+      case 3: return <Calendar next={() => setStep(4)} />;
+      case 4: return <Schedule next={() => setStep(5)} />;
+      case 5: return <Export />;
+      default: return <Upload next={() => setStep(2)} />;
+    }
+  };
+
   return (
     <div className="app">
-      <Sidebar />
-      <MainPanel />
-      <RightPanel />
+      <aside className="sidebar">
+        <h2>AI Scheduler</h2>
+        {steps.map(s => (
+          <div
+            key={s.id}
+            className={`step ${step === s.id ? "active" : ""}`}
+            onClick={() => setStep(s.id)}
+          >
+            {s.name}
+          </div>
+        ))}
+      </aside>
+
+      <main className="main">
+        {renderStep()}
+      </main>
     </div>
   );
 }
