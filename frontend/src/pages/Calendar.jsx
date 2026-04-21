@@ -2,38 +2,44 @@ import React, { useState } from "react";
 import { api } from "../api/client";
 import "../styles/Calendar.css";
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 export default function CalendarPage({ sessionId, onCalendarData }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [authInfo, setAuthInfo] = useState(null);
   const [error, setError] = useState("");
 
-  const authorize = async () => {
-    try {
-      const res = await api.authorizeCalendar();
-      setAuthInfo(res.data);
-    } catch {
-      setError("Authorization failed");
-    }
+  // ✅ REAL OAUTH FLOW (FIXED)
+  const authorize = () => {
+    window.location.href = `${API_URL}/authorize-calendar`;
   };
 
   const fetchSlots = async () => {
-    if (!startDate || !endDate) return;
+    if (!startDate || !endDate) {
+      setError("Please select both dates");
+      return;
+    }
 
     setLoading(true);
     setError("");
 
     try {
-      const res = await api.getCalendarSlots(startDate, endDate, sessionId);
-      setSlots(res.data.slots);
-      onCalendarData(res.data.slots);
+      const res = await api.getCalendarSlots(
+        startDate,
+        endDate,
+        sessionId
+      );
+
+      setSlots(res.data.slots || []);
+      onCalendarData?.(res.data.slots || []);
     } catch (e) {
       setError(e.response?.data?.detail || "Failed to fetch slots");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -45,21 +51,13 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
       <div className="card">
         <h3>1. Connect Google Calendar</h3>
 
-        {!authInfo ? (
-          <button onClick={authorize}>Connect Calendar</button>
-        ) : (
-          <div className="hint">
-            Follow setup instructions below
-          </div>
-        )}
+        <button onClick={authorize}>
+          Connect Google Calendar
+        </button>
 
-        {authInfo && (
-          <ul>
-            {authInfo.steps?.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
-        )}
+        <p className="hint">
+          You will be redirected to Google to authorize access.
+        </p>
       </div>
 
       {/* STEP 2 */}
@@ -67,8 +65,17 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
         <h3>2. Select Date Range</h3>
 
         <div className="row">
-          <input type="date" onChange={(e) => setStartDate(e.target.value)} />
-          <input type="date" onChange={(e) => setEndDate(e.target.value)} />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
         </div>
 
         <button onClick={fetchSlots} disabled={loading}>
