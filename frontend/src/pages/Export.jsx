@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { api } from '../api/client';
 import '../styles/Export.css';
 
-export function ExportPage({ sessionId }) {
+export default function ExportPage({ sessionId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [exportSuccess, setExportSuccess] = useState(false);
