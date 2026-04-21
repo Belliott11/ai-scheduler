@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { api } from "../api/client";
 import "../styles/Schedule.css";
 
-export function SchedulePage({ sessionId }) {
+export default function SchedulePage({ sessionId }) {
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { api } from "../api/client";
 import "../styles/Calendar.css";
 
-export function CalendarPage({ sessionId, onCalendarData }) {
+export default function CalendarPage({ sessionId, onCalendarData }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [slots, setSlots] = useState([]);
