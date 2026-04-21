@@ -31,6 +31,23 @@ GitHub Actions is already configured via `.github/workflows/deploy.yml`
 2. Click **Actions**
 3. Confirm workflows are enabled
 
+### Step 2b: Update Backend URL in Workflow (Optional but Recommended)
+
+To set your backend URL for production builds:
+
+1. Edit `.github/workflows/deploy.yml`
+2. Find the "Build" step
+3. Update `VITE_API_URL`:
+   ```yaml
+   - name: Build
+     working-directory: ./frontend
+     run: npm run build
+     env:
+       VITE_BASE_PATH: /ai-scheduler/
+       VITE_API_URL: https://your-backend-url.com  # ← Update this
+   ```
+4. Push the change to trigger a rebuild with the new URL
+
 ### Step 3: Deploy
 
 Simply push to `main` branch:
@@ -41,9 +58,13 @@ git push origin main
 ```
 
 The workflow will automatically:
-1. Install dependencies
-2. Build the frontend
-3. Deploy to GitHub Pages
+1. Checkout your code
+2. Set up Node.js 18
+3. Install frontend dependencies (`npm install`)
+4. Build with Vite (`npm run build`)
+5. Deploy to GitHub Pages
+
+⏱️ **Build time**: ~2-3 minutes
 
 **Your site will be live at**: `https://yourusername.github.io/ai-scheduler/`
 
@@ -147,10 +168,19 @@ SERVER_PORT=8000
 
 ## Troubleshooting Deployment
 
-### Frontend won't load
-- Check GitHub Pages settings (gh-pages branch should exist)
-- Verify base path in vite.config.js matches your repository name
-- Check Actions tab for build errors
+### "Failed to build 'pandas'" or other Python errors
+**Cause**: The workflow is trying to install Python backend dependencies  
+**Fix**: Make sure GitHub Actions workflow is in `frontend` directory only
+
+Check `.github/workflows/deploy.yml`:
+- All npm steps should have `working-directory: ./frontend`
+- No Python (pip) steps should be present
+
+### Frontend won't load / npm cache errors
+- GitHub Actions workflow failed? Check the "Actions" tab for detailed error logs
+- Look for "npm install" or "npm run build" errors
+- Verify `working-directory: ./frontend` is set in workflow
+- Check if `frontend/package.json` exists and is valid JSON
 
 ### Backend API calls fail
 - Verify backend URL in frontend API client
