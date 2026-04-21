@@ -1,107 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import { UploadPage } from './pages/Upload';
-import { CalendarPage } from './pages/Calendar';
-import { SchedulePage } from './pages/Schedule';
-import { ExportPage } from './pages/Export';
-import './App.css';
+import "./styles.css";
 
-function App() {
-  const [currentStep, setCurrentStep] = useState('upload'); // 'upload' | 'calendar' | 'schedule' | 'export'
-  const [sessionId] = useState(`session_${Date.now()}`);
-  const [syllabusData, setSyllabusData] = useState(null);
-  const [calendarData, setCalendarData] = useState(null);
-
-  const handleSyllabusData = (data) => {
-    setSyllabusData(data);
-    setCurrentStep('calendar');
-  };
-
-  const handleCalendarData = (data) => {
-    setCalendarData(data);
-    setCurrentStep('schedule');
-  };
-
+function Sidebar() {
   return (
-    <div className="app">
-      <header className="header">
-        <div className="header-content">
-          <h1 className="logo">🎓 AI Scheduler</h1>
-          <p className="tagline">Intelligently schedule your coursework with AI</p>
-        </div>
-        <div className="progress">
-          <ProgressStep 
-            number={1} 
-            label="Syllabus" 
-            active={currentStep === 'upload'}
-            completed={syllabusData !== null}
-            onClick={() => setCurrentStep('upload')}
-          />
-          <ProgressStep 
-            number={2} 
-            label="Calendar" 
-            active={currentStep === 'calendar'}
-            completed={calendarData !== null}
-            onClick={() => syllabusData && setCurrentStep('calendar')}
-            disabled={!syllabusData}
-          />
-          <ProgressStep 
-            number={3} 
-            label="Schedule" 
-            active={currentStep === 'schedule'}
-            completed={currentStep === 'export'}
-            onClick={() => syllabusData && setCurrentStep('schedule')}
-            disabled={!syllabusData}
-          />
-          <ProgressStep 
-            number={4} 
-            label="Export" 
-            active={currentStep === 'export'}
-            onClick={() => syllabusData && setCurrentStep('export')}
-            disabled={!syllabusData}
-          />
-        </div>
-      </header>
-
-      <main className="main-content">
-        {currentStep === 'upload' && (
-          <UploadPage 
-            sessionId={sessionId}
-            onSyllabusData={handleSyllabusData}
-          />
-        )}
-        {currentStep === 'calendar' && (
-          <CalendarPage 
-            sessionId={sessionId}
-            onCalendarData={handleCalendarData}
-            syllabusData={syllabusData}
-          />
-        )}
-        {currentStep === 'schedule' && (
-          <SchedulePage sessionId={sessionId} />
-        )}
-        {currentStep === 'export' && (
-          <ExportPage sessionId={sessionId} />
-        )}
-      </main>
-
-      <footer className="footer">
-        <p>AI Scheduler © 2024 | Powered by Claude AI</p>
-      </footer>
+    <div className="sidebar">
+      <h2>AI Scheduler</h2>
+      <button className="primary">Upload Syllabus</button>
+      <button>Connect Calendar</button>
+      <button>View Schedule</button>
     </div>
   );
 }
 
-function ProgressStep({ number, label, active, completed, onClick, disabled }) {
+function UploadBox() {
   return (
-    <button
-      className={`progress-step ${active ? 'active' : ''} ${completed ? 'completed' : ''} ${disabled ? 'disabled' : ''}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <span className="step-number">{completed ? '✓' : number}</span>
-      <span className="step-label">{label}</span>
-    </button>
+    <div className="card">
+      <h3>Upload Syllabus</h3>
+      <div className="upload-box">
+        <p>Drag & drop your syllabus PDF</p>
+        <input type="file" accept="application/pdf" />
+      </div>
+    </div>
   );
 }
 
-export default App;
+function CalendarInput() {
+  return (
+    <div className="card">
+      <h3>Availability</h3>
+      <label>Start Date</label>
+      <input type="date" />
+
+      <label>End Date</label>
+      <input type="date" />
+
+      <button className="primary">Sync Calendar</button>
+    </div>
+  );
+}
+
+function AIPrompt() {
+  return (
+    <div className="card">
+      <h3>Customize AI</h3>
+      <textarea placeholder="Prioritize exams, avoid weekends..." />
+      <button className="primary">Generate Schedule</button>
+    </div>
+  );
+}
+
+function SchedulePreview() {
+  return (
+    <div className="card">
+      <h3>Schedule</h3>
+      <div className="item">
+        <strong>Essay Work</strong>
+        <p>April 22 · 10:00–12:00</p>
+      </div>
+    </div>
+  );
+}
+
+function MainPanel() {
+  return (
+    <div style={{ padding: "20px" }}>
+      <UploadBox />
+      <CalendarInput />
+      <AIPrompt />
+    </div>
+  );
+}
+
+function RightPanel() {
+  return (
+    <div style={{ padding: "20px", borderLeft: "1px solid #1e293b" }}>
+      <SchedulePreview />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="app">
+      <Sidebar />
+      <MainPanel />
+      <RightPanel />
+    </div>
+  );
+}

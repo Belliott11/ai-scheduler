@@ -1,0 +1,63 @@
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  height: 100vh;
+}
+
+.sidebar {
+  background: #020617;
+  padding: 20px;
+  border-right: 1px solid #1e293b;
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+}
+
+.sidebar button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #334155;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.card {
+  background: #020617;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+  margin-bottom: 16px;
+}
+
+.upload-box {
+  border: 2px dashed #334155;
+  padding: 40px;
+  text-align: center;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+input, textarea {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: white;
+}
+
+.primary {
+  background: #3b82f6;
+  border: none;
+}
+
+.item {
+  padding: 10px;
+  border-bottom: 1px solid #1e293b;
+}
