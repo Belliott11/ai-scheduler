@@ -4,7 +4,7 @@ import tempfile
 import json
 from datetime import datetime
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from dotenv import load_dotenv
@@ -16,22 +16,20 @@ from googleapiclient.discovery import build
 from models import SyllabusData, CalendarSlot, Assignment
 from services.pdf_parser import extract_text_from_pdf
 from services.claude_scheduler import parse_syllabus_with_claude, generate_schedule_with_claude
-from services.exporters import generate_markdown_schedule, generate_ics_calendar, generate_json_schedule
+from services.exporters import (
+    generate_markdown_schedule,
+    generate_ics_calendar,
+    generate_json_schedule,
+)
 from services.workload_predictor import get_predictor
 
 # ======================
-# LOAD ENV
+# INIT
 # ======================
 load_dotenv()
 
-app = FastAPI(
-    title="AI Scheduler API",
-    version="0.1.0"
-)
+app = FastAPI(title="AI Scheduler API", version="0.1.0")
 
-# ======================
-# CORS
-# ======================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -44,16 +42,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ======================
-# MEMORY STORE (MVP ONLY)
-# ======================
 user_sessions = {}
 
-# ======================
-# GOOGLE OAUTH CONFIG
-# ======================
 GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-
 REDIRECT_URI = "http://localhost:8000/oauth/callback"
 
 
@@ -66,7 +57,7 @@ def health():
 
 
 # ======================
-# SYLLABUS UPLOAD
+# UPLOAD SYLLABUS
 # ======================
 @app.post("/upload-syllabus")
 async def upload_syllabus(file: UploadFile = File(...)):
@@ -98,26 +89,26 @@ async def parse_syllabus(request: dict):
 
     user_sessions[session_id] = {
         "syllabus": parsed,
-        "created": datetime.now().isoformat()
+        "created": datetime.now().isoformat(),
     }
 
     return {"success": True, "session_id": session_id}
 
 
 # ======================
-# OAUTH START
+# GOOGLE AUTH START
 # ======================
 @app.get("/authorize-calendar")
 def authorize_calendar():
     flow = Flow.from_client_secrets_file(
         "credentials.json",
         scopes=GOOGLE_SCOPES,
-        redirect_uri=REDIRECT_URI
+        redirect_uri=REDIRECT_URI,
     )
 
     auth_url, state = flow.authorization_url(
         access_type="offline",
-        prompt="consent"
+        prompt="consent",
     )
 
     user_sessions["oauth_state"] = state
@@ -126,7 +117,7 @@ def authorize_calendar():
 
 
 # ======================
-# OAUTH CALLBACK
+# GOOGLE CALLBACK
 # ======================
 @app.get("/oauth/callback")
 def oauth_callback(code: str, state: str):
@@ -135,11 +126,10 @@ def oauth_callback(code: str, state: str):
         "credentials.json",
         scopes=GOOGLE_SCOPES,
         state=state,
-        redirect_uri=REDIRECT_URI
+        redirect_uri=REDIRECT_URI,
     )
 
     flow.fetch_token(code=code)
-
     creds = flow.credentials
 
     user_sessions["google_creds"] = {
@@ -155,7 +145,7 @@ def oauth_callback(code: str, state: str):
 
 
 # ======================
-# CALENDAR SLOT FETCH
+# CALENDAR EVENTS
 # ======================
 @app.post("/get-calendar-slots")
 async def get_calendar_slots(request: dict):
@@ -168,29 +158,18 @@ async def get_calendar_slots(request: dict):
         raise HTTPException(400, "Missing dates")
 
     creds_data = user_sessions.get("google_creds")
-
     if not creds_data:
         raise HTTPException(401, "Not authenticated")
 
-    creds = Credentials(
-        token=creds_data["token"],
-        refresh_token=creds_data["refresh_token"],
-        token_uri=creds_data["token_uri"],
-        client_id=creds_data["client_id"],
-        client_secret=creds_data["client_secret"],
-        scopes=creds_data["scopes"],
-    )
-
+    creds = Credentials(**creds_data)
     service = build("calendar", "v3", credentials=creds)
 
     events = service.events().list(
         calendarId="primary",
         timeMin=f"{start_date}T00:00:00Z",
         timeMax=f"{end_date}T23:59:59Z",
-        singleEvents=True
+        singleEvents=True,
     ).execute()
-
-    items = events.get("items", [])
 
     slots = [
         {
@@ -198,38 +177,33 @@ async def get_calendar_slots(request: dict):
             "start": e["start"].get("dateTime"),
             "end": e["end"].get("dateTime"),
         }
-        for e in items if "start" in e
+        for e in events.get("items", [])
+        if "start" in e
     ]
 
-    if session_id not in user_sessions:
-        user_sessions[session_id] = {}
+    user_sessions.setdefault(session_id, {})["calendar"] = slots
 
-    user_sessions[session_id]["calendar"] = slots
-
-    return {
-        "success": True,
-        "slots": slots
-    }
+    return {"success": True, "slots": slots}
 
 
 # ======================
-# SCHEDULE GENERATION
+# SCHEDULE
 # ======================
 @app.post("/schedule")
 async def create_schedule(request: dict):
 
     session_id = request.get("session_id", "default")
-
     session = user_sessions.get(session_id)
+
     if not session:
         raise HTTPException(400, "No session")
 
-    syllabus = session.get("syllabus")
-    calendar = session.get("calendar", [])
+    schedule = generate_schedule_with_claude(
+        session.get("syllabus"),
+        session.get("calendar", []),
+    )
 
-    schedule = generate_schedule_with_claude(syllabus, calendar)
-
-    user_sessions[session_id]["schedule"] = schedule
+    session["schedule"] = schedule
 
     return {"success": True, "schedule": schedule}
 
@@ -250,28 +224,28 @@ async def export_calendar(request: dict):
 
     if fmt == "ics":
         content = generate_ics_calendar(schedule)
-        file = "schedule.ics"
+        filename = "schedule.ics"
         media = "text/calendar"
 
     elif fmt == "json":
         content = json.dumps(schedule)
-        file = "schedule.json"
+        filename = "schedule.json"
         media = "application/json"
 
     else:
         content = generate_markdown_schedule(schedule)
-        file = "schedule.md"
+        filename = "schedule.md"
         media = "text/markdown"
 
     with tempfile.NamedTemporaryFile(delete=False, mode="w") as tmp:
         tmp.write(content)
         path = tmp.name
 
-    return FileResponse(path, filename=file, media_type=media)
+    return FileResponse(path, filename=filename, media_type=media)
 
 
 # ======================
-# RUN
+# RUN LOCAL
 # ======================
 if __name__ == "__main__":
     import uvicorn
