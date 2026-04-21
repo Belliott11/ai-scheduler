@@ -2,9 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  // Set base path for GitHub Pages deployment
-  // Change 'ai-scheduler' to your repository name if different
-  base: process.env.VITE_BASE_PATH || '/ai-scheduler/',
+  // Set base path - use VITE_BASE_PATH env var, default to '/' for Vercel
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [react()],
   server: {
     port: 5173,
