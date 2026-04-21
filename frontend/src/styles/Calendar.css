@@ -1,0 +1,67 @@
+/* Calendar Page Styles */
+.calendar-page .auth-section,
+.calendar-page .date-section {
+  background-color: #f3f4f6;
+  padding: 25px;
+  border-radius: 8px;
+  margin: 25px 0;
+  border-left: 4px solid var(--primary-color);
+}
+
+.calendar-page .auth-section h2,
+.calendar-page .date-section h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.calendar-page .date-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.calendar-page .input-group {
+  margin-bottom: 0;
+}
+
+.calendar-page .slots-section {
+  margin-top: 40px;
+}
+
+.calendar-page .slots-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.slot-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.slot-card strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.slot-card p {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .calendar-page .date-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-page .slots-list {
+    grid-template-columns: 1fr;
+  }
+}

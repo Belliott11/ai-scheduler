@@ -1,0 +1,111 @@
+/* Schedule Page Styles */
+.schedule-page .generate-section {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 8px;
+  margin: 30px 0;
+}
+
+.schedule-page .generate-section p {
+  color: var(--text-light);
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.schedule-display {
+  margin: 30px 0;
+}
+
+.schedule-summary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.schedule-summary h2 {
+  margin-top: 0;
+  color: white;
+}
+
+.schedule-summary p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.daily-tasks {
+  margin: 30px 0;
+}
+
+.day-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.day-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.day-card h3 {
+  margin: 0 0 15px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.task {
+  padding: 15px;
+  background-color: #f9fafb;
+  border-left: 4px solid var(--secondary-color);
+  border-radius: 4px;
+}
+
+.task-time {
+  display: block;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.task-title {
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 5px;
+}
+
+.task-notes {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.tips-section {
+  background-color: #fef3c7;
+  border: 1px solid var(--warning-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.tips-section h2 {
+  margin-top: 0;
+  color: var(--warning-color);
+}
+
+.tips-section p {
+  color: #92400e;
+  line-height: 1.8;
+}
