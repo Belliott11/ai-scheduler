@@ -168,6 +168,28 @@ SERVER_PORT=8000
 
 ## Troubleshooting Deployment
 
+### GitHub Actions permission error: "Permission denied to github-actions[bot]"
+**Cause**: The workflow doesn't have write permissions to push to gh-pages branch  
+**Status**: ✅ FIXED in latest workflow
+
+The workflow now includes:
+```yaml
+jobs:
+  build:
+    permissions:
+      contents: write
+```
+
+This allows the workflow to create and push the gh-pages branch automatically.
+
+### Backend Python build fails: "Failed to build 'pandas'"
+**Cause**: Older pandas version (2.0.3) doesn't support Python 3.14  
+**Status**: ✅ FIXED
+
+Updated `backend/requirements.txt`:
+- `pandas==2.0.3` → `pandas==2.1.4` (Python 3.14 compatible)
+- `numpy==1.24.3` → `numpy==1.26.3` (matching compatibility)
+
 ### "Failed to build 'pandas'" or other Python errors
 **Cause**: The workflow is trying to install Python backend dependencies  
 **Fix**: Make sure GitHub Actions workflow is in `frontend` directory only
