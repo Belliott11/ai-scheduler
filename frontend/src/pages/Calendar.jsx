@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import "../styles/Calendar.css";
 
@@ -11,6 +12,15 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('connected') === 'true') {
+      setIsConnected(true);
+      setError(""); // clear any error
+    }
+  }, [searchParams]);
 
   // ✅ REAL OAUTH FLOW (FIXED)
   const authorize = () => {
@@ -58,9 +68,13 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
         <h3>Step 1: Authorize Google Calendar</h3>
         <p className="description">Click the button below to grant us access to view your calendar availability.</p>
 
-        <button onClick={authorize} style={{ marginTop: '16px' }}>
-          🔗 Connect Google Calendar
-        </button>
+        {isConnected ? (
+          <p style={{ color: 'green', fontWeight: 'bold' }}>✅ Calendar Connected Successfully!</p>
+        ) : (
+          <button onClick={authorize} style={{ marginTop: '16px' }}>
+            🔗 Connect Google Calendar
+          </button>
+        )}
 
         <p className="description" style={{ fontSize: '0.85rem', marginTop: '12px', color: 'var(--text-secondary)' }}>
           We only read your free/busy information and never modify your calendar.
