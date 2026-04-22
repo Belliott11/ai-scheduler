@@ -2,7 +2,7 @@
 import os
 import tempfile
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -198,19 +198,70 @@ async def get_calendar_slots(request: dict):
         singleEvents=True,
     ).execute()
 
-    slots = [
-        {
-            "summary": e.get("summary", "Busy"),
-            "start": e["start"].get("dateTime"),
-            "end": e["end"].get("dateTime"),
-        }
-        for e in events.get("items", [])
-        if "start" in e
-    ]
+    items = events.get("items", [])
 
-    user_sessions.setdefault(session_id, {})["calendar"] = slots
+    # Helper to parse RFC3339 datetimes
+    def _parse_dt(s: str):
+        if not s:
+            return None
+        try:
+            if s.endswith('Z'):
+                s = s.replace('Z', '+00:00')
+            return datetime.fromisoformat(s)
+        except Exception:
+            return None
 
-    return {"success": True, "slots": slots}
+    # Organize busy intervals by date
+    busy_by_day = {}
+    for e in items:
+        start_raw = e.get('start', {}).get('dateTime') or e.get('start', {}).get('date')
+        end_raw = e.get('end', {}).get('dateTime') or e.get('end', {}).get('date')
+        start_dt = _parse_dt(start_raw) if start_raw and 'T' in start_raw else None
+        end_dt = _parse_dt(end_raw) if end_raw and 'T' in end_raw else None
+        # fallback: skip all-day events (date-only) for now
+        if not start_dt or not end_dt:
+            continue
+
+        day_key = start_dt.date().isoformat()
+        busy_by_day.setdefault(day_key, []).append((start_dt, end_dt))
+
+    # For each day in the range, compute free slots between 08:00 and 22:00
+    start_dt_day = datetime.fromisoformat(f"{start_date}T00:00:00+00:00")
+    end_dt_day = datetime.fromisoformat(f"{end_date}T00:00:00+00:00")
+    curr = start_dt_day
+    free_slots = []
+    while curr.date() <= end_dt_day.date():
+        day_str = curr.date().isoformat()
+        day_start = datetime.fromisoformat(f"{day_str}T08:00:00+00:00")
+        day_end = datetime.fromisoformat(f"{day_str}T22:00:00+00:00")
+
+        busy = sorted(busy_by_day.get(day_str, []), key=lambda x: x[0])
+
+        cursor = day_start
+        for bstart, bend in busy:
+            if bstart > cursor:
+                # free slot between cursor and bstart
+                if (bstart - cursor).total_seconds() >= 30 * 60:
+                    free_slots.append({
+                        'start': cursor.isoformat(),
+                        'end': bstart.isoformat(),
+                        'day_of_week': cursor.strftime('%A')
+                    })
+            cursor = max(cursor, bend)
+
+        # trailing free slot
+        if cursor < day_end and (day_end - cursor).total_seconds() >= 30 * 60:
+            free_slots.append({
+                'start': cursor.isoformat(),
+                'end': day_end.isoformat(),
+                'day_of_week': cursor.strftime('%A')
+            })
+
+        curr = curr + timedelta(days=1)
+
+    user_sessions.setdefault(session_id, {})["calendar"] = items
+
+    return {"success": True, "slots": free_slots}
 
 
 # ======================
@@ -332,7 +383,12 @@ async def create_schedule(request: dict):
 @app.post("/export-calendar")
 async def export_calendar(request: dict):
     session_id = request.get("session_id", "default")
-    fmt = request.get("format", "ics")
+    fmt = (request.get("format", "ics") or "ics").lower()
+    allowed = {"ics", "json", "md", "markdown"}
+    if fmt == 'markdown':
+        fmt = 'md'
+    if fmt not in allowed:
+        raise HTTPException(400, "Invalid export format; must be one of: ics, json, md")
 
     schedule = user_sessions.get(session_id, {}).get("schedule")
 
