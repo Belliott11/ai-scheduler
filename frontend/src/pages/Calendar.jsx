@@ -44,56 +44,77 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
 
   return (
     <div className="page">
-      <h1>Calendar</h1>
-      <p className="subtitle">Find your free time automatically</p>
+      <h1>📅 Find Your Free Time</h1>
+      <p className="description">Connect your calendar and we'll automatically identify when you can study.</p>
 
       {/* STEP 1 */}
-      <div className="card">
-        <h3>1. Connect Google Calendar</h3>
+      <div className="instructions">
+        <h3>📅 Connect Your Calendar</h3>
+        <p>By connecting your Google Calendar, we can automatically find your free time blocks for studying.</p>
+      </div>
 
-        <button onClick={authorize}>
-          Connect Google Calendar
+      <div className="card">
+        <h3>Step 1: Authorize Google Calendar</h3>
+        <p className="description">Click the button below to grant us access to view your calendar availability.</p>
+
+        <button onClick={authorize} style={{ marginTop: '16px' }}>
+          🔗 Connect Google Calendar
         </button>
 
-        <p className="hint">
-          You will be redirected to Google to authorize access.
+        <p className="description" style={{ fontSize: '0.85rem', marginTop: '12px', color: 'var(--text-secondary)' }}>
+          We only read your free/busy information and never modify your calendar.
         </p>
       </div>
 
       {/* STEP 2 */}
       <div className="card">
-        <h3>2. Select Date Range</h3>
+        <h3>Step 2: Select Your Study Period</h3>
+        <p className="description">Choose the date range you want to plan your studies for:</p>
 
-        <div className="row">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="input"
+            />
+          </div>
 
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="input"
+            />
+          </div>
         </div>
 
-        <button onClick={fetchSlots} disabled={loading}>
-          {loading ? "Finding free time..." : "Fetch Free Slots"}
+        <button onClick={fetchSlots} disabled={loading} style={{ marginTop: '16px' }}>
+          {loading ? "⏳ Finding your free time..." : "🔍 Analyze Calendar"}
         </button>
       </div>
 
       {/* RESULTS */}
       {slots.length > 0 && (
         <div className="card">
-          <h3>Available Time Slots</h3>
+          <h3>✅ Available Time Slots Found</h3>
+          <p className="description">We found {slots.length} free time blocks in your calendar:</p>
 
-          <div className="grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', marginTop: '16px' }}>
             {slots.map((s, i) => (
-              <div key={i} className="slot">
-                <strong>{s.day_of_week}</strong>
-                <p>{s.start_time}</p>
-                <p>{s.end_time}</p>
+              <div key={i} style={{ 
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid var(--card-light)'
+              }}>
+                <div style={{ fontWeight: '600', color: 'var(--accent)', marginBottom: '8px' }}>📌 {s.day_of_week}</div>
+                <p style={{ fontSize: '0.9rem', margin: '4px 0', color: 'var(--text-secondary)' }}>Start: {s.start_time}</p>
+                <p style={{ fontSize: '0.9rem', margin: '4px 0', color: 'var(--text-secondary)' }}>End: {s.end_time}</p>
               </div>
             ))}
           </div>

@@ -41,65 +41,76 @@ export default function ExportPage({ sessionId }) {
   return (
     <div className="page export-page">
       <div className="container">
-        <h1>📤 Export Your Schedule</h1>
-        <p className="subtitle">
-          Download your schedule in the format that works best for you.
+        <h1>🎉 You're All Set!</h1>
+        <p className="description">
+          Your personalized study schedule is ready. Download it in your preferred format to start studying smarter.
         </p>
 
-        <div className="export-options">
-          <div className="export-card">
-            <h3>📅 Google Calendar (.ics)</h3>
-            <p>
-              Download as an iCalendar file to import into Google Calendar,
-              Outlook, or other calendar apps.
+        <div className="instructions">
+          <h3>📥 Choose Your Export Format</h3>
+          <p>Select how you'd like to access your schedule:</p>
+          <ul>
+            <li><strong>Google Calendar:</strong> Sync directly with your calendar app</li>
+            <li><strong>Markdown:</strong> Print-friendly document with detailed notes</li>
+          </ul>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginTop: '24px' }}>
+          <div className="card" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📅</div>
+            <h3 style={{ marginTop: '0' }}>Google Calendar</h3>
+            <p className="description" style={{ fontSize: '0.9rem' }}>
+              Download as an iCalendar file (.ics) to import into Google Calendar, Outlook, Apple Calendar, or other apps.
             </p>
             <button 
               onClick={() => handleExport('ics')}
               disabled={isLoading}
-              className="btn btn-primary"
+              style={{ marginTop: '16px', width: '100%' }}
             >
-              {isLoading ? 'Exporting...' : 'Export as ICS'}
+              {isLoading ? '⏳ Exporting...' : '📥 Export as ICS'}
             </button>
           </div>
 
-          <div className="export-card">
-            <h3>📝 Markdown Document</h3>
-            <p>
-              Download as a readable markdown file with your full schedule
-              and study tips.
+          <div className="card" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📝</div>
+            <h3 style={{ marginTop: '0' }}>Markdown Document</h3>
+            <p className="description" style={{ fontSize: '0.9rem' }}>
+              Download as a readable markdown file with your full schedule, assignments, and study tips. Perfect for printing.
             </p>
             <button 
               onClick={() => handleExport('markdown')}
               disabled={isLoading}
-              className="btn btn-primary"
+              style={{ marginTop: '16px', width: '100%' }}
             >
-              {isLoading ? 'Exporting...' : 'Export as Markdown'}
-            </button>
-          </div>
-
-          <div className="export-card">
-            <h3>� JSON Format</h3>
-            <p>
-              Download as JSON for integration with other applications
-              and tools.
-            </p>
-            <button 
-              onClick={() => handleExport('json')}
-              disabled={isLoading}
-              className="btn btn-secondary"
-            >
-              {isLoading ? 'Exporting...' : 'Export as JSON'}
+              {isLoading ? '⏳ Exporting...' : '📥 Export as Markdown'}
             </button>
           </div>
         </div>
 
         {exportSuccess && (
-          <div className="success-message">
-            ✅ Export successful! Check your downloads folder.
+          <div className="success-message" style={{ marginTop: '24px' }}>
+            ✅ <strong>Export successful!</strong> Your schedule has been downloaded. Check your downloads folder to get started!
           </div>
         )}
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message" style={{ marginTop: '24px' }}>
+            ⚠️ <strong>Export failed:</strong> {error}
+          </div>
+        )}
+
+        <div className="instructions" style={{ marginTop: '40px' }}>
+          <h3>🚀 What's Next?</h3>
+          <ul>
+            <li><strong>Import to Calendar:</strong> Open the .ics file with your calendar app to add all study sessions</li>
+            <li><strong>Set Reminders:</strong> Get notifications before each study session</li>
+            <li><strong>Adjust as Needed:</strong> Feel free to modify the schedule based on how you're feeling</li>
+            <li><strong>Track Progress:</strong> Monitor your assignments as you complete them</li>
+          </ul>
+          <p style={{ marginTop: '16px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            💡 Pro tip: Start with the first assignment and work through the schedule. Consistency is key to success!
+          </p>
+        </div>
       </div>
     </div>
   );
