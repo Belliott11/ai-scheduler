@@ -149,9 +149,11 @@ def oauth_callback(request: Request):
     )
 
     try:
-        flow.fetch_token(code=code)
+        # Use the full authorization response URL when exchanging the code.
+        # This avoids issues when additional query params (e.g. iss) are present.
+        flow.fetch_token(authorization_response=str(request.url))
     except Exception as e:
-        print("TOKEN ERROR:", str(e))
+        print("TOKEN ERROR:", repr(e))
         raise HTTPException(500, f"OAuth token exchange failed: {str(e)}")
 
     creds = flow.credentials
