@@ -13,7 +13,7 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from models import SyllabusData, CalendarSlot, Assignment
+from models import SyllabusData, CalendarSlot, Assignment, ScheduledTask, ScheduleOutput
 from services.pdf_parser import extract_text_from_file
 from services.claude_scheduler import parse_syllabus_with_claude, generate_schedule_with_claude
 from services.exporters import (
@@ -224,14 +224,106 @@ async def create_schedule(request: dict):
     if not session:
         raise HTTPException(400, "No session")
 
-    schedule = generate_schedule_with_claude(
-        session.get("syllabus"),
-        session.get("calendar", []),
-    )
+    # Convert stored syllabus dict into SyllabusData model if needed
+    raw_syllabus = session.get("syllabus")
+    if raw_syllabus is None:
+        raise HTTPException(400, "No syllabus data in session")
 
-    session["schedule"] = schedule
+    if isinstance(raw_syllabus, SyllabusData):
+        syllabus_model = raw_syllabus
+    else:
+        try:
+            syllabus_model = SyllabusData.parse_obj(raw_syllabus)
+        except Exception as e:
+            raise HTTPException(400, f"Invalid syllabus format: {e}")
 
-    return {"success": True, "schedule": schedule}
+    # Convert calendar slot dicts into CalendarSlot models
+    raw_slots = session.get("calendar", []) or []
+    calendar_slots = []
+    def _parse_dt(s: str):
+        if not s:
+            return None
+        try:
+            if s.endswith('Z'):
+                s = s.replace('Z', '+00:00')
+            return datetime.fromisoformat(s)
+        except Exception:
+            return None
+
+    for s in raw_slots:
+        start = _parse_dt(s.get('start'))
+        end = _parse_dt(s.get('end'))
+        if not start or not end:
+            continue
+        day_name = start.strftime('%A')
+        calendar_slots.append(CalendarSlot(start_time=start, end_time=end, day_of_week=day_name))
+
+    # Call the Gemini scheduling function (returns JSON text)
+    schedule_raw = generate_schedule_with_claude(syllabus_model, calendar_slots)
+
+    # Try to parse the AI response into a structured ScheduleOutput
+    schedule_obj = None
+    try:
+        parsed = json.loads(schedule_raw)
+        # Expecting { schedule_summary, daily_tasks: [{date, day, tasks: [{assignment_title, start_time, end_time, notes}]}], tips }
+        tasks = []
+        for day_block in parsed.get('daily_tasks', []):
+            date = day_block.get('date')
+            for t in day_block.get('tasks', []):
+                title = t.get('assignment_title') or t.get('assignment') or t.get('title') or 'Study'
+                start_time = t.get('start_time')
+                end_time = t.get('end_time')
+                if not date or not start_time or not end_time:
+                    continue
+                # Build datetimes
+                try:
+                    start_dt = datetime.fromisoformat(f"{date}T{start_time}")
+                    end_dt = datetime.fromisoformat(f"{date}T{end_time}")
+                except Exception:
+                    continue
+
+                # Try to find matching assignment from syllabus
+                match = None
+                for a in syllabus_model.assignments:
+                    try:
+                        if a.title.strip().lower() == title.strip().lower():
+                            match = a
+                            break
+                    except Exception:
+                        continue
+
+                if not match:
+                    # create a lightweight Assignment placeholder
+                    match = Assignment(
+                        title=title,
+                        description=t.get('notes') or '',
+                        due_date=datetime.now(),
+                        estimated_hours=1.0,
+                        priority=3,
+                        assignment_type='other'
+                    )
+
+                sched_task = ScheduledTask(
+                    assignment=match,
+                    scheduled_start=start_dt,
+                    scheduled_end=end_dt,
+                    day=start_dt.strftime('%A')
+                )
+                tasks.append(sched_task)
+
+        schedule_obj = ScheduleOutput(
+            course_name=syllabus_model.course_name or 'Course',
+            schedule=tasks,
+            summary=parsed.get('schedule_summary') or parsed.get('summary') or parsed.get('tips', ''),
+            created_at=datetime.now(),
+        )
+    except Exception:
+        # If parsing fails, store the raw response
+        schedule_obj = schedule_raw
+
+    session["schedule"] = schedule_obj
+
+    return {"success": True, "schedule": schedule_obj}
 
 
 # ======================
@@ -247,16 +339,31 @@ async def export_calendar(request: dict):
     if not schedule:
         raise HTTPException(400, "No schedule")
 
+    # schedule may be a ScheduleOutput object or a raw AI string; handle both
     if fmt == "ics":
-        content = generate_ics_calendar(schedule)
+        if isinstance(schedule, ScheduleOutput):
+            content = generate_ics_calendar(schedule)
+        else:
+            # cannot generate ICS from raw string; return raw text
+            content = str(schedule)
         filename = "schedule.ics"
         media = "text/calendar"
     elif fmt == "json":
-        content = json.dumps(schedule)
+        if isinstance(schedule, ScheduleOutput):
+            content = generate_json_schedule(schedule)
+        else:
+            # return raw JSON/string
+            try:
+                content = json.dumps(json.loads(schedule), indent=2)
+            except Exception:
+                content = json.dumps({"raw": str(schedule)})
         filename = "schedule.json"
         media = "application/json"
     else:
-        content = generate_markdown_schedule(schedule)
+        if isinstance(schedule, ScheduleOutput):
+            content = generate_markdown_schedule(schedule)
+        else:
+            content = str(schedule)
         filename = "schedule.md"
         media = "text/markdown"
 

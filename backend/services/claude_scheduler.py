@@ -2,7 +2,7 @@
 import json
 import google.generativeai as genai
 import os
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 from models import SyllabusData, CalendarSlot, ScheduleOutput, ScheduledTask, Assignment
 from datetime import datetime
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
 
 
-def parse_syllabus_with_gemini(syllabus_text: str) -> dict:
+def parse_syllabus_with_gemini(syllabus_text: str) -> Dict[str, Any]:
     """
     Use Gemini to parse raw syllabus text and extract structured data.
     
