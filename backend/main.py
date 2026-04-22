@@ -44,7 +44,7 @@ app.add_middleware(
 user_sessions = {}
 
 GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
-REDIRECT_URI = "http://localhost:8000/oauth/callback"
+REDIRECT_URI = "https://ai-scheduler-backend-v7t0.onrender.com/oauth/callback"
 
 
 # ======================
