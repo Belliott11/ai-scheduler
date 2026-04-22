@@ -7,10 +7,9 @@ import "./index.css";
 
 const steps = [
   { id: 1, name: "Upload" },
-  { id: 2, name: "Review" },
-  { id: 3, name: "Calendar" },
-  { id: 4, name: "Schedule" },
-  { id: 5, name: "Export" },
+  { id: 2, name: "Calendar" },
+  { id: 3, name: "Schedule" },
+  { id: 4, name: "Export" },
 ];
 
 export default function App() {
@@ -19,9 +18,9 @@ export default function App() {
   const renderStep = () => {
     switch (step) {
       case 1: return <Upload next={() => setStep(2)} />;
-      case 3: return <Calendar next={() => setStep(4)} />;
-      case 4: return <Schedule next={() => setStep(5)} />;
-      case 5: return <Export />;
+      case 2: return <Calendar next={() => setStep(3)} />;
+      case 3: return <Schedule next={() => setStep(4)} />;
+      case 4: return <Export />;
       default: return <Upload next={() => setStep(2)} />;
     }
   };

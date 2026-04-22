@@ -1,7 +1,12 @@
 import { useState } from "react";
+import { api } from "../api/client";
 
 export default function Upload({ next }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -16,6 +21,34 @@ export default function Upload({ next }) {
     e.preventDefault();
     setIsDragging(false);
     // Handle file drop logic here if needed
+  };
+
+  const handleFileChange = (e) => {
+    const f = e.target.files && e.target.files[0];
+    setFile(f || null);
+    setResult(null);
+    setError("");
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      setError("Please select a file to upload.");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const res = await api.uploadSyllabus(file);
+      // show the returned data (API may return extracted text or structured JSON)
+      setResult(res.data || { message: 'Upload successful' });
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -57,7 +90,14 @@ export default function Upload({ next }) {
               cursor: 'pointer',
               fontSize: '0.95rem'
             }}
+            onChange={handleFileChange}
           />
+          {file && <div style={{ marginTop: 10 }}>{file.name}</div>}
+          <div style={{ marginTop: 12 }}>
+            <button onClick={handleUpload} disabled={uploading || !file} className="btn">
+              {uploading ? 'Uploading…' : 'Upload Syllabus'}
+            </button>
+          </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '12px' }}>
             Supported: PDF and DOCX files up to 10MB
           </p>
@@ -91,16 +131,26 @@ export default function Upload({ next }) {
         </ul>
       </div>
 
-      <button 
-        onClick={next}
-        style={{ 
-          marginTop: '24px',
-          padding: '14px 32px',
-          fontSize: '1rem'
-        }}
-      >
-        Continue to Next Step →
-      </button>
+      {error && <p className="error">{error}</p>}
+
+      {result && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <h3>Upload Result</h3>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</pre>
+        </div>
+      )}
+
+      <div style={{ marginTop: 24 }}>
+        <button 
+          onClick={next}
+          style={{ 
+            padding: '14px 32px',
+            fontSize: '1rem'
+          }}
+        >
+          Continue to Next Step →
+        </button>
+      </div>
     </div>
   );
 }

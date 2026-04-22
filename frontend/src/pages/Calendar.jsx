@@ -14,7 +14,8 @@ export default function CalendarPage({ sessionId, onCalendarData }) {
 
   // ✅ REAL OAUTH FLOW (FIXED)
   const authorize = () => {
-    window.location.href = `${API_URL}/authorize-calendar`;
+    // open authorization in a new tab so users keep the app open
+    window.open(`${API_URL}/authorize-calendar`, "_blank", "noopener,noreferrer");
   };
 
   const fetchSlots = async () => {
