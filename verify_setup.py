@@ -37,7 +37,7 @@ def main():
         ("backend/requirements.txt", "Python dependencies"),
         ("backend/.env.example", "Environment template"),
         ("backend/services/pdf_parser.py", "PDF parser"),
-        ("backend/services/claude_scheduler.py", "Claude scheduler"),
+        ("backend/services/gemini_scheduler.py", "Gemini scheduler"),
         ("backend/services/calendar_service.py", "Calendar service"),
         ("backend/services/exporters.py", "Export service"),
         ("backend/services/__init__.py", "Services package init"),
@@ -97,7 +97,7 @@ def main():
     else:
         print("⚠️  backend/.env not found")
         print("   👉 Run: copy backend/.env.example backend/.env")
-        print("   👉 Then add your ANTHROPIC_API_KEY")
+        print("   👉 Then add your GOOGLE_API_KEY")
     
     # Check Python version
     python_version = sys.version_info

@@ -33,13 +33,13 @@ ai-scheduler/
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── pdf_parser.py        # PDF extraction with pdfplumber
-│   │   ├── claude_scheduler.py  # Gemini API integration
+│   │   ├── gemini_scheduler.py  # Gemini API integration
 │   │   ├── calendar_service.py  # Google Calendar API integration
 │   │   ├── workload_predictor.py # ML workload predictions (Python)
 │   │   ├── workload_predictor.R  # Statistical models (R)
 │   │   └── exporters.py         # Schedule export functionality
 │   └── prompts/
-│       └── (Claude prompt templates)
+│       └── (Gemini prompt templates)
 │
 ├── frontend/                     # React + Vite frontend
 │   ├── index.html               # HTML entry point
@@ -218,7 +218,7 @@ On first use, the app will prompt you to authorize access to your Google Calenda
 
 ### Backend (.env)
 ```
-ANTHROPIC_API_KEY=your_key_here
+GOOGLE_API_KEY=your_key_here
 GOOGLE_CREDENTIALS_PATH=./credentials.json
 DEBUG=True
 SERVER_HOST=localhost
@@ -318,10 +318,10 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed steps.
 - Ensure the file is a valid PDF
 - Try extracting text manually and pasting it instead
 
-### "ANTHROPIC_API_KEY not found"
+### "GOOGLE_API_KEY not found"
 - Check that you have an `.env` file in the `backend/` folder
 - Verify your API key is correct
-- Get a key from https://console.anthropic.com/
+- Get a key from https://makersuite.google.com/
 
 ### "Google Calendar connection failed"
 - Verify `credentials.json` is in the `backend/` folder
@@ -350,13 +350,13 @@ For issues or questions:
 1. Check the troubleshooting section above
 2. Review the API documentation
 3. Open an issue on GitHub
-4. Check Anthropic's Claude documentation: https://docs.anthropic.com/
+4. Check Google Gemini documentation: https://makersuite.google.com/
 
 ## Credits
 
 Built with:
 - **FastAPI** - Modern Python web framework
 - **React** - JavaScript UI library
-- **Claude AI** - Anthropic's language model
+- **Gemini AI** - Google's generative model
 - **Google Calendar API** - Calendar integration
 - **Vite** - Frontend build tool

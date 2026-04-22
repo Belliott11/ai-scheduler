@@ -14,10 +14,10 @@ ai-scheduler/
 │   ├── .env.example               # Environment template
 │   ├── services/
 │   │   ├── pdf_parser.py          # PDF extraction
-│   │   ├── claude_scheduler.py    # Claude AI integration
+│   │   ├── gemini_scheduler.py    # Gemini AI integration
 │   │   ├── calendar_service.py    # Google Calendar API
 │   │   └── exporters.py           # Schedule export formats
-│   └── prompts/                   # Claude prompts (expandable)
+│   └── prompts/                   # Gemini prompts (expandable)
 │
 ├── frontend/
 │   ├── index.html                 # HTML entry
@@ -176,7 +176,7 @@ Download ICS / Markdown / JSON
 
 **Backend Entry Points:**
 - `backend/main.py` - Start FastAPI server here
-- `backend/services/claude_scheduler.py` - AI scheduling logic
+- `backend/services/gemini_scheduler.py` - AI scheduling logic
 - `backend/services/pdf_parser.py` - PDF processing
 
 **Frontend Entry Points:**
@@ -204,7 +204,7 @@ Download ICS / Markdown / JSON
 ### 🎓 Next Steps
 
 1. **Get API Keys:**
-   - Anthropic: https://console.anthropic.com/
+    - Google (Gemini): https://makersuite.google.com/
    - Google (optional): https://console.cloud.google.com/
 
 2. **Run the App:**
@@ -212,21 +212,21 @@ Download ICS / Markdown / JSON
 
 3. **Test with Sample:**
    - Create a simple test syllabus
-   - Upload and watch Claude parse it
+    - Upload and watch Gemini parse it
    - Generate a schedule
    - Export and import to your calendar
 
 4. **Customize:**
-   - Modify Claude prompts in `backend/services/claude_scheduler.py`
+    - Modify Gemini prompts in `backend/services/gemini_scheduler.py`
    - Adjust colors in `frontend/src/index.css`
    - Add new features to pages
 
 ### 🔍 Common Customizations
 
-**Change Claude Model:**
-In `backend/services/claude_scheduler.py`, line ~50:
+**Change Gemini Model:**
+In `backend/services/gemini_scheduler.py`, line ~50:
 ```python
-model="claude-3-5-sonnet-20241022"  # Change this
+# model selection handled via the google.generativeai client configuration
 ```
 
 **Change Server Port:**
@@ -279,7 +279,7 @@ npm run build
 
 ### 📞 Support Resources
 
-- **Claude Docs**: https://docs.anthropic.com/
+- **Gemini Docs**: https://makersuite.google.com/
 - **FastAPI Docs**: https://fastapi.tiangolo.com/
 - **React Docs**: https://react.dev/
 - **Google Calendar API**: https://developers.google.com/calendar/

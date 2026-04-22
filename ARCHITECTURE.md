@@ -34,7 +34,7 @@
 │  └──────────┬───────┬───────┬──────────┬──────────┬─────────┘  │
 │             │       │       │          │          │             │
 │  ┌──────────▼─┐ ┌───▼──┐ ┌─▼────────┐ ┌▼─────────┐ ┌────────┐ │
-│  │   PDF      │ │Claude│ │ Google   │ │Schedule  │ │Exporters
+│  │   PDF      │ │Gemini│ │ Google   │ │Schedule  │ │Exporters
 │  │  Parser    │ │  API │ │ Calendar │ │  Logic   │ │        │
 │  │            │ │      │ │   API    │ │          │ │- ICS   │
 │  │- Extract   │ │- Parse│ │          │ │- Balance │ │- MD    │
@@ -49,8 +49,8 @@
             ┌────────────────┼────────────────┐
             │                │                │
       ┌─────▼──────┐   ┌─────▼──────┐  ┌────▼────────┐
-      │ Uploaded   │   │  Anthropic │  │    Google   │
-      │  PDFs      │   │   Claude   │  │  Calendar   │
+      │ Uploaded   │   │   Google   │  │    Google   │
+      │  PDFs      │   │   Gemini   │  │  Calendar   │
       │ (temp)     │   │    API     │  │     API     │
       └────────────┘   └────────────┘  └─────────────┘
 ```
@@ -80,14 +80,14 @@
          │
          ▼
 ┌─────────────────────────────────┐
-│  Backend: claude_scheduler.py   │
-│  Send text to Claude:           │
+│  Backend: gemini_scheduler.py   │
+│  Send text to Gemini:           │
 │  "Extract all assignments"      │
 └────────┬────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────┐
-│   Anthropic Claude API          │
+│   Google Gemini API             │
 │   Returns parsed assignments    │
 │   (JSON with dates, hours, etc) │
 └────────┬────────────────────────┘
@@ -113,8 +113,8 @@
          │
          ▼
 ┌─────────────────────────────────┐
-│  Backend: claude_scheduler.py   │
-│  Send to Claude:                │
+│  Backend: gemini_scheduler.py   │
+│  Send to Gemini:                │
 │  "Schedule these assignments"   │
 │  "In these time slots"          │
 │  "Avoid cramming"               │
@@ -122,7 +122,7 @@
          │
          ▼
 ┌─────────────────────────────────┐
-│   Anthropic Claude API          │
+│   Google Gemini API             │
 │   Returns optimized schedule    │
 │   (day-by-day task breakdown)   │
 └────────┬────────────────────────┘
@@ -300,8 +300,8 @@ Google Calendar
 ├─ Credentials file in .gitignore
 └─ Token refresh handled automatically
 
-Anthropic API
-├─ API key in .env (never in code)
+Gemini API
+├─ API key (`GOOGLE_API_KEY`) in .env (never in code)
 ├─ HTTPS only
 ├─ No data persistence by default
 └─ Latest security patches via pip install
@@ -318,7 +318,7 @@ Frontend:
 Backend:
 - Async request handling (FastAPI default)
 - PDF streaming (not loading whole file)
-- Claude prompt optimization
+- Gemini prompt optimization
 - Google Calendar batch queries
 
 Browser:

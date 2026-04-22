@@ -76,10 +76,6 @@ def parse_syllabus_with_gemini(syllabus_text: str) -> Dict[str, Any]:
     raise ValueError("Failed to parse Gemini response as JSON")
 
 
-# Keep the old function name for backward compatibility
-parse_syllabus_with_claude = parse_syllabus_with_gemini
-
-
 def generate_schedule_with_gemini(
     syllabus: SyllabusData,
     calendar_slots: List[CalendarSlot],
@@ -159,7 +155,3 @@ def generate_schedule_with_gemini(
     
     response = model.generate_content(prompt)
     return response.text
-
-
-# Keep the old function name for backward compatibility
-generate_schedule_with_claude = generate_schedule_with_gemini

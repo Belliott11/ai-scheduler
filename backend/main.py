@@ -15,7 +15,7 @@ from googleapiclient.discovery import build
 
 from models import SyllabusData, CalendarSlot, Assignment, ScheduledTask, ScheduleOutput
 from services.pdf_parser import extract_text_from_file
-from services.claude_scheduler import parse_syllabus_with_claude, generate_schedule_with_claude
+from services.gemini_scheduler import parse_syllabus_with_gemini, generate_schedule_with_gemini
 from services.exporters import (
     generate_markdown_schedule,
     generate_ics_calendar,
@@ -89,7 +89,7 @@ async def parse_syllabus(request: dict):
     if not text:
         raise HTTPException(400, "Missing syllabus_text")
 
-    parsed = parse_syllabus_with_claude(text)
+    parsed = parse_syllabus_with_gemini(text)
 
     user_sessions[session_id] = {
         "syllabus": parsed,
@@ -310,7 +310,7 @@ async def create_schedule(request: dict):
         calendar_slots.append(CalendarSlot(start_time=start, end_time=end, day_of_week=day_name))
 
     # Call the Gemini scheduling function (returns JSON text)
-    schedule_raw = generate_schedule_with_claude(syllabus_model, calendar_slots)
+    schedule_raw = generate_schedule_with_gemini(syllabus_model, calendar_slots)
 
     # Try to parse the AI response into a structured ScheduleOutput
     schedule_obj = None

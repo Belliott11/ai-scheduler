@@ -21,7 +21,7 @@ Your AI Scheduler application has been **fully scaffolded and is ready to run**.
 
 - **`services/`** - Four complete service modules:
   - `pdf_parser.py` - Extract text from PDFs
-  - `claude_scheduler.py` - Claude API integration
+   - `gemini_scheduler.py` - Gemini API integration
   - `calendar_service.py` - Google Calendar API integration
   - `exporters.py` - Generate ICS, Markdown, JSON exports
 
@@ -96,7 +96,7 @@ copy .env.example .env
 
 **Edit `.env` and add:**
 ```
-ANTHROPIC_API_KEY=your_key_from_console.anthropic.com
+GOOGLE_API_KEY=your_key_from_makersuite
 ```
 
 **Start the backend:**
@@ -123,7 +123,7 @@ Open your browser to: **http://localhost:5173**
 ### 1. Syllabus Processing ✅
 - Upload PDF files
 - Extract text using pdfplumber
-- Parse with Claude AI to extract:
+- Parse with Gemini AI to extract:
   - Assignment titles & descriptions
   - Due dates
   - Estimated hours
@@ -138,7 +138,7 @@ Open your browser to: **http://localhost:5173**
 - Date range selection
 
 ### 3. AI Scheduling ✅
-- Claude API integration
+- Gemini API integration
 - Intelligent schedule generation that:
   - Respects deadlines
   - Prevents cramming
@@ -165,7 +165,7 @@ Open your browser to: **http://localhost:5173**
 **Backend:**
 - FastAPI 0.104.1
 - Python 3.8+
-- Claude API (Anthropic)
+- Gemini API (Google)
 - pdfplumber (PDF parsing)
 - Google Calendar API
 - Uvicorn (ASGI server)
@@ -177,8 +177,7 @@ Open your browser to: **http://localhost:5173**
 - Pure CSS (no framework dependencies)
 - Node.js 16+
 
-**Services:**
-- Anthropic Claude (AI scheduling)
+- Google Gemini (AI scheduling)
 - Google Calendar API (calendar integration)
 
 ## 🔑 API Endpoints
@@ -187,7 +186,7 @@ Open your browser to: **http://localhost:5173**
 |----------|--------|---------|
 | `/health` | GET | Server health check |
 | `/upload-syllabus` | POST | Upload and extract PDF |
-| `/parse-syllabus` | POST | Parse text with Claude |
+| `/parse-syllabus` | POST | Parse text with Gemini |
 | `/authorize-calendar` | GET | OAuth setup instructions |
 | `/get-calendar-slots` | POST | Fetch available time slots |
 | `/schedule` | POST | Generate optimized schedule |
@@ -207,7 +206,7 @@ ai-scheduler/
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── pdf_parser.py            [40+ lines PDF extraction]
-│   │   ├── claude_scheduler.py      [100+ lines AI scheduling]
+│   │   ├── gemini_scheduler.py      [100+ lines AI scheduling]
 │   │   ├── calendar_service.py      [120+ lines Google Calendar]
 │   │   └── exporters.py             [120+ lines export formats]
 │   └── prompts/                     [Ready for custom prompts]
@@ -257,7 +256,7 @@ All settings are customizable:
 
 **Backend (`backend/.env`):**
 ```
-ANTHROPIC_API_KEY=your_key
+GOOGLE_API_KEY=your_key
 GOOGLE_CREDENTIALS_PATH=./credentials.json
 DEBUG=True
 SERVER_HOST=localhost
@@ -270,8 +269,8 @@ SERVER_PORT=8000
 **Styling (`frontend/src/index.css`):**
 - Change colors, fonts, spacing in CSS variables
 
-**Claude Model (`backend/services/claude_scheduler.py`):**
-- Change to different Claude model version
+**Gemini Model (`backend/services/gemini_scheduler.py`):**
+- Model selection/configuration is handled via the Google Generative AI client in `gemini_scheduler.py`
 
 ## ✨ Next Steps to Run
 
@@ -306,7 +305,7 @@ SERVER_PORT=8000
 
 5. **Test:**
    - Upload a sample syllabus PDF
-   - Watch Claude parse it
+   - Watch Gemini parse it
    - Generate a schedule
    - Export as ICS or Markdown
 
@@ -322,7 +321,7 @@ SERVER_PORT=8000
 **Related Technologies:**
 - FastAPI: https://fastapi.tiangolo.com/
 - React: https://react.dev/
-- Claude API: https://docs.anthropic.com/
+- Gemini API: https://makersuite.google.com/
 - Google Calendar API: https://developers.google.com/calendar/
 - Vite: https://vitejs.dev/
 
