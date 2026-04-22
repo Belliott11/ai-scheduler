@@ -37,7 +37,7 @@ export default function Upload({ next }) {
 
       {/* PDF Upload */}
       <div className="card">
-        <h3>📄 Upload PDF File</h3>
+        <h3>📄 Upload Document</h3>
         <div 
           className={`upload-area ${isDragging ? 'active' : ''}`}
           onDragOver={handleDragOver}
@@ -46,12 +46,12 @@ export default function Upload({ next }) {
         >
           <span className="upload-icon">📤</span>
           <p style={{ fontSize: '1.1rem', fontWeight: '500', margin: '10px 0' }}>
-            Drag & drop your PDF here
+            Drag & drop your syllabus here
           </p>
           <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>or</p>
           <input 
             type="file" 
-            accept="application/pdf" 
+            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
             style={{ 
               padding: '8px 16px',
               cursor: 'pointer',
@@ -59,7 +59,7 @@ export default function Upload({ next }) {
             }}
           />
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '12px' }}>
-            Supported: PDF files up to 10MB
+            Supported: PDF and DOCX files up to 10MB
           </p>
         </div>
       </div>
@@ -83,6 +83,7 @@ export default function Upload({ next }) {
       <div className="instructions" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1))', borderColor: 'var(--success-color)' }}>
         <h3 style={{ color: 'var(--success-color)' }}>💡 Tips for Best Results</h3>
         <ul style={{ marginLeft: '24px' }}>
+          <li>Works with PDF and Word (.docx) files</li>
           <li>Include assignment names, types (essay, exam, project), and due dates</li>
           <li>Mention estimated time required for each task if available</li>
           <li>Include course name and instructor information</li>

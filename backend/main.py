@@ -14,7 +14,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from models import SyllabusData, CalendarSlot, Assignment
-from services.pdf_parser import extract_text_from_pdf
+from services.pdf_parser import extract_text_from_pdf, extract_text_from_file
 from services.claude_scheduler import parse_syllabus_with_claude, generate_schedule_with_claude
 from services.exporters import (
     generate_markdown_schedule,
@@ -61,17 +61,25 @@ def health():
 # ======================
 @app.post("/upload-syllabus")
 async def upload_syllabus(file: UploadFile = File(...)):
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(400, "PDF required")
+    # Check file extension
+    if file.filename.endswith(".pdf"):
+        suffix = ".pdf"
+    elif file.filename.endswith(".docx"):
+        suffix = ".docx"
+    else:
+        raise HTTPException(400, "Only PDF and DOCX files are supported")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+    # Save file temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(await file.read())
         path = tmp.name
 
-    text = extract_text_from_pdf(path)
-    os.unlink(path)
-
-    return {"success": True, "text": text}
+    try:
+        # Extract text from either PDF or DOCX
+        text = extract_text_from_file(path)
+        return {"success": True, "text": text}
+    finally:
+        os.unlink(path)
 
 
 # ======================
