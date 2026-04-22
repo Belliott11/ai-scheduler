@@ -4,7 +4,7 @@ import tempfile
 import json
 from datetime import datetime
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from dotenv import load_dotenv
@@ -14,14 +14,13 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from models import SyllabusData, CalendarSlot, Assignment
-from services.pdf_parser import extract_text_from_pdf, extract_text_from_file
+from services.pdf_parser import extract_text_from_file
 from services.claude_scheduler import parse_syllabus_with_claude, generate_schedule_with_claude
 from services.exporters import (
     generate_markdown_schedule,
     generate_ics_calendar,
     generate_json_schedule,
 )
-from services.workload_predictor import get_predictor
 
 # ======================
 # INIT
@@ -61,7 +60,6 @@ def health():
 # ======================
 @app.post("/upload-syllabus")
 async def upload_syllabus(file: UploadFile = File(...)):
-    # Check file extension
     if file.filename.endswith(".pdf"):
         suffix = ".pdf"
     elif file.filename.endswith(".docx"):
@@ -69,13 +67,11 @@ async def upload_syllabus(file: UploadFile = File(...)):
     else:
         raise HTTPException(400, "Only PDF and DOCX files are supported")
 
-    # Save file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(await file.read())
         path = tmp.name
 
     try:
-        # Extract text from either PDF or DOCX
         text = extract_text_from_file(path)
         return {"success": True, "text": text}
     finally:
@@ -117,6 +113,7 @@ def authorize_calendar():
     auth_url, state = flow.authorization_url(
         access_type="offline",
         prompt="consent",
+        include_granted_scopes="true",
     )
 
     user_sessions["oauth_state"] = state
@@ -128,7 +125,21 @@ def authorize_calendar():
 # GOOGLE CALLBACK
 # ======================
 @app.get("/oauth/callback")
-def oauth_callback(code: str, state: str):
+def oauth_callback(request: Request):
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+
+    print("OAuth callback received")
+    print("Code:", code[:10] if code else None)
+    print("State:", state)
+
+    if not code:
+        raise HTTPException(400, "Missing code")
+
+    # OPTIONAL: disable this check if debugging issues
+    saved_state = user_sessions.get("oauth_state")
+    if saved_state and state != saved_state:
+        raise HTTPException(400, "Invalid OAuth state")
 
     flow = Flow.from_client_secrets_file(
         "credentials.json",
@@ -137,7 +148,12 @@ def oauth_callback(code: str, state: str):
         redirect_uri=REDIRECT_URI,
     )
 
-    flow.fetch_token(code=code)
+    try:
+        flow.fetch_token(code=code)
+    except Exception as e:
+        print("TOKEN ERROR:", str(e))
+        raise HTTPException(500, f"OAuth token exchange failed: {str(e)}")
+
     creds = flow.credentials
 
     user_sessions["google_creds"] = {
@@ -149,6 +165,8 @@ def oauth_callback(code: str, state: str):
         "scopes": creds.scopes,
     }
 
+    print("OAuth success")
+
     return RedirectResponse("http://localhost:5173/calendar?connected=true")
 
 
@@ -157,7 +175,6 @@ def oauth_callback(code: str, state: str):
 # ======================
 @app.post("/get-calendar-slots")
 async def get_calendar_slots(request: dict):
-
     session_id = request.get("session_id", "default")
     start_date = request.get("start_date")
     end_date = request.get("end_date")
@@ -199,7 +216,6 @@ async def get_calendar_slots(request: dict):
 # ======================
 @app.post("/schedule")
 async def create_schedule(request: dict):
-
     session_id = request.get("session_id", "default")
     session = user_sessions.get(session_id)
 
@@ -221,7 +237,6 @@ async def create_schedule(request: dict):
 # ======================
 @app.post("/export-calendar")
 async def export_calendar(request: dict):
-
     session_id = request.get("session_id", "default")
     fmt = request.get("format", "ics")
 
@@ -234,12 +249,10 @@ async def export_calendar(request: dict):
         content = generate_ics_calendar(schedule)
         filename = "schedule.ics"
         media = "text/calendar"
-
     elif fmt == "json":
         content = json.dumps(schedule)
         filename = "schedule.json"
         media = "application/json"
-
     else:
         content = generate_markdown_schedule(schedule)
         filename = "schedule.md"
