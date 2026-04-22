@@ -169,7 +169,7 @@ def oauth_callback(request: Request):
 
     print("OAuth success")
 
-    return RedirectResponse("http://localhost:5173/calendar?connected=true")
+    return RedirectResponse("https://ai-scheduler-liart-eight.vercel.app//calendar?connected=true")
 
 
 # ======================
